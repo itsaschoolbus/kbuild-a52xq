@@ -180,7 +180,7 @@ jobs:
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        if [ ${{ env.USE_CLANG }} != true && ${{ env.USE_GCC }} != true ]; then
+        if [ ${{ env.USE_CLANG }} != true ] && [ ${{ env.USE_GCC }} != true ]; then
             echo "Toolchain not selected"
             exit 1
         fi
