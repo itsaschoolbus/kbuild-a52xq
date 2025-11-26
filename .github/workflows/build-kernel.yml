@@ -7,7 +7,7 @@ jobs:
     name: Build Kernel
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Maximize build space
       if: env.REMOVE_UNUSED_PACKAGES == 'true'
@@ -154,7 +154,21 @@ jobs:
     - name: Download kernel source
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
-        git clone --recursive ${{ env.KERNEL_SOURCE }} -b ${{ env.KERNEL_SOURCE_BRANCH }} android-kernel --depth=1
+        git clone --recursive ${{ env.KERNEL_SOURCE }} -b ${{ env.KERNEL_SOURCE_BRANCH }} android-kernel --depth=100 --no-single-branch
+
+    - name: Apply commits
+      run: |
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        while IFS= read -r commit; do
+          [ -z "$commit" ] && continue
+          [[ "$commit" =~ ^# ]] && continue
+          git cherry-pick "$commit" || {
+            echo "$commit failed"
+            exit 1
+          }
+        done < $GITHUB_WORKSPACE/picks.txt
 
     - name: Download source boot image
       if: env.BUILD_BOOT_IMG == 'true'
